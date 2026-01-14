@@ -1,0 +1,87 @@
+<div class="resource-container">
+    <mat-tab-group>
+        <mat-tab label="Clubs">
+            <div class="tab-content">
+                <div class="actions">
+                    <button mat-raised-button color="primary" (click)="openClubDialog()">
+                        <mat-icon>add</mat-icon> Add Club
+                    </button>
+                </div>
+                <mat-list>
+                    <mat-list-item *ngFor="let club of clubs">
+                        <mat-icon matListItemIcon>groups</mat-icon>
+                        <div matListItemTitle>{{club.name}}</div>
+                        <div matListItemLine>{{club.description}}</div>
+                    </mat-list-item>
+                </mat-list>
+            </div>
+        </mat-tab>
+
+        <mat-tab label="Venues">
+            <div class="tab-content">
+                <div class="actions">
+                    <button mat-raised-button color="primary" (click)="openVenueDialog()">
+                        <mat-icon>add</mat-icon> Add Venue
+                    </button>
+                </div>
+                <mat-list>
+                    <mat-list-item *ngFor="let venue of venues">
+                        <mat-icon matListItemIcon>location_on</mat-icon>
+                        <div matListItemTitle>{{venue.name}}</div>
+                        <div matListItemLine>Capacity: {{venue.capacity}} | {{venue.location}}</div>
+                    </mat-list-item>
+                </mat-list>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+</div>
+
+<!-- Club Dialog -->
+<ng-template #clubDialog>
+    <h2 mat-dialog-title>Add New Club</h2>
+    <mat-dialog-content>
+        <form [formGroup]="clubForm">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Club Name</mat-label>
+                <input matInput formControlName="name">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Description</mat-label>
+                <textarea matInput formControlName="description"></textarea>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>President Email</mat-label>
+                <input matInput formControlName="president_email">
+            </mat-form-field>
+        </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+        <button mat-button mat-dialog-close>Cancel</button>
+        <button mat-raised-button color="primary" (click)="submitClub()" [disabled]="clubForm.invalid">Create</button>
+    </mat-dialog-actions>
+</ng-template>
+
+<!-- Venue Dialog -->
+<ng-template #venueDialog>
+    <h2 mat-dialog-title>Add New Venue</h2>
+    <mat-dialog-content>
+        <form [formGroup]="venueForm">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Venue Name</mat-label>
+                <input matInput formControlName="name">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Capacity</mat-label>
+                <input matInput type="number" formControlName="capacity">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Location</mat-label>
+                <input matInput formControlName="location">
+            </mat-form-field>
+        </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+        <button mat-button mat-dialog-close>Cancel</button>
+        <button mat-raised-button color="primary" (click)="submitVenue()" [disabled]="venueForm.invalid">Create</button>
+    </mat-dialog-actions>
+</ng-template>

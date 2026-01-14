@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Organizer Dashboard - CEMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        .sidebar {
+            height: 100vh;
+            background: #2c3e50;
+            color: white;
+            min-height: 100vh;
+            position: fixed;
+            width: 250px;
+        }
+
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 15px 20px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #34495e;
+            color: white;
+            border-left: 4px solid #3498db;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <div class="sidebar">
+        <h4 class="text-center py-4">Organizer Panel</h4>
+        <a href="#" onclick="showSection('dashboard')" class="active" id="nav-dashboard">Dashboard & Stats</a>
+        <a href="#" onclick="showSection('createEvent')" id="nav-create">Create Event</a>
+        <a href="#" onclick="showSection('scanner')" id="nav-scanner">QR Scanner</a>
+        <a href="index.html" class="mt-5 text-warning">← Back to Site</a>
+    </div>
+
+    <div class="main-content">
+
+        <div id="section-dashboard">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Club Overview</h2>
+                <button onclick="showSection('createEvent')" class="btn btn-primary">+ Create New Event</button>
+            </div>
+
+            <div class="alert alert-info" id="clubInfo">Loading Club Info...</div>
+
+            <h4 class="mt-4">My Events Status</h4>
+            <table class="table table-white shadow-sm mt-3 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Event Title</th>
+                        <th>Date</th>
+                        <th>Capacity</th>
+                        <th>Registered</th>
+                        <th>Attended</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="statsTable">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="section-createEvent" class="d-none">
+            <h2 class="mb-4">Create New Event</h2>
+            <div class="card shadow-sm p-4">
+                <form id="createEventForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Event Title</label>
+                            <input type="text" id="evtTitle" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Venue</label>
+                            <select id="evtVenue" class="form-select" required>
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Start Time</label>
+                            <input type="datetime-local" id="evtStart" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>End Time</label>
+                            <input type="datetime-local" id="evtEnd" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Max Attendees</label>
+                            <input type="number" id="evtCap" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Banner Image URL</label>
+                            <input type="url" id="evtBanner" class="form-control"
+                                placeholder="https://example.com/image.jpg">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <textarea id="evtDesc" class="form-control" rows="3" required></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="button" onclick="showSection('dashboard')"
+                            class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Publish Event</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="section-scanner" class="d-none">
+            <h2 class="mb-4">Attendance Scanner</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow-sm p-3">
+                        <div id="reader" style="width: 100%;"></div>
+                        <div class="text-center mt-2 text-muted">Point camera at student QR Code</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm p-4 text-center">
+                        <h4>Scan Result</h4>
+                        <div id="scanResult" class="mt-4">
+                            <p class="text-muted">Waiting for scan...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="editEventModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editEvtId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Event Title</label>
+                            <input type="text" id="editEvtTitle" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Venue</label>
+                            <select id="editEvtVenue" class="form-select"></select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Start Time</label>
+                            <input type="datetime-local" id="editEvtStart" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>End Time</label>
+                            <input type="datetime-local" id="editEvtEnd" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Max Attendees</label>
+                            <input type="number" id="editEvtCap" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Banner URL</label>
+                            <input type="url" id="editEvtBanner" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <textarea id="editEvtDesc" class="form-control" rows="3"></textarea>
+                    </div>
+                    <button onclick="submitEditEvent()" class="btn btn-primary w-100">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("role");
+        let globalEvents = [];
+        let globalVenues = [];
+
+        if (!token || role !== 'organizer') {
+            alert("Access Denied. Organizers only.");
+            window.location.href = "login.html";
+        }
+
+        function showSection(sectionId) {
+            document.getElementById("section-dashboard").classList.add("d-none");
+            document.getElementById("section-createEvent").classList.add("d-none");
+            document.getElementById("section-scanner").classList.add("d-none");
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+
+            if (sectionId === 'dashboard') {
+                document.getElementById("section-dashboard").classList.remove("d-none");
+                document.getElementById("nav-dashboard").classList.add("active");
+                loadDashboard();
+            } else if (sectionId === 'createEvent') {
+                document.getElementById("section-createEvent").classList.remove("d-none");
+                document.getElementById("nav-create").classList.add("active");
+                loadVenues("evtVenue");
+            } else if (sectionId === 'scanner') {
+                document.getElementById("section-scanner").classList.remove("d-none");
+                document.getElementById("nav-scanner").classList.add("active");
+                startScanner();
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`${API_URL}/organizer/club`, { headers: { "Authorization": `Bearer ${token}` } });
+                if (res.ok) {
+                    const club = await res.json();
+                    document.getElementById("clubInfo").innerHTML = `<strong>You are managing:</strong> ${club.name}`;
+                    document.getElementById("clubInfo").className = "alert alert-info";
+                }
+
+                const statRes = await fetch(`${API_URL}/organizer/events/stats`, { headers: { "Authorization": `Bearer ${token}` } });
+                globalEvents = await statRes.json();
+
+                document.getElementById("statsTable").innerHTML = globalEvents.map(e => `
+                <tr>
+                    <td>${e.title}</td>
+                    <td>${new Date(e.start_time).toLocaleDateString()}</td>
+                    <td>${e.max_attendees}</td>
+                    <td><span class="badge bg-primary">${e.registered}</span></td>
+                    <td><span class="badge bg-success">${e.attended}</span></td>
+                    <td><button onclick="openEditEvent('${e.id}')" class="btn btn-sm btn-outline-dark">Edit</button></td>
+                </tr>
+            `).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadVenues(selectId) {
+            try {
+                const res = await fetch(`${API_URL}/venues`);
+                globalVenues = await res.json();
+                const select = document.getElementById(selectId);
+                select.innerHTML = globalVenues.map(v => `<option value="${v.id}">${v.name} (Cap: ${v.capacity})</option>`).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        document.getElementById("createEventForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = {
+                title: document.getElementById("evtTitle").value,
+                description: document.getElementById("evtDesc").value,
+                venue_id: document.getElementById("evtVenue").value,
+                start_time: document.getElementById("evtStart").value,
+                end_time: document.getElementById("evtEnd").value,
+                max_attendees: parseInt(document.getElementById("evtCap").value),
+                banner_url: document.getElementById("evtBanner").value
+            };
+            await sendEventRequest("/organizer/events", "POST", data, "Event Published!");
+            document.getElementById("createEventForm").reset();
+            showSection('dashboard');
+        });
+
+        // --- FIX FOR EDIT EVENT ---
+        async function openEditEvent(evtId) {
+            const event = globalEvents.find(e => e.id === evtId);
+            if (!event) return;
+
+            await loadVenues("editEvtVenue");
+
+            document.getElementById("editEvtId").value = event.id;
+            document.getElementById("editEvtTitle").value = event.title;
+            document.getElementById("editEvtVenue").value = event.venue_id || "";
+
+            // FIX: Ensure correct format YYYY-MM-DDTHH:MM for inputs
+            document.getElementById("editEvtStart").value = event.start_time.slice(0, 16);
+
+            // FIX: If end_time exists, use it. If not, default to start time + 1 hour
+            if (event.end_time) {
+                document.getElementById("editEvtEnd").value = event.end_time.slice(0, 16);
+            } else {
+                // Fallback to avoid empty input
+                document.getElementById("editEvtEnd").value = event.start_time.slice(0, 16);
+            }
+
+            document.getElementById("editEvtCap").value = event.max_attendees;
+            // Fetch full details if description/banner missing from stats
+            document.getElementById("editEvtDesc").value = event.description || "";
+            document.getElementById("editEvtBanner").value = event.banner_url || "";
+
+            new bootstrap.Modal(document.getElementById('editEventModal')).show();
+        }
+
+        async function submitEditEvent() {
+            const id = document.getElementById("editEvtId").value;
+            const startT = document.getElementById("editEvtStart").value;
+            const endT = document.getElementById("editEvtEnd").value;
+
+            // Validation to prevent DB Crash
+            if (new Date(endT) <= new Date(startT)) {
+                alert("Error: End Time must be LATER than Start Time.");
+                return;
+            }
+
+            const data = {
+                title: document.getElementById("editEvtTitle").value,
+                description: document.getElementById("editEvtDesc").value,
+                venue_id: document.getElementById("editEvtVenue").value,
+                start_time: startT,
+                end_time: endT,
+                max_attendees: parseInt(document.getElementById("editEvtCap").value),
+                banner_url: document.getElementById("editEvtBanner").value
+            };
+
+            await sendEventRequest(`/organizer/events/${id}`, "PUT", data, "Event Updated!");
+            bootstrap.Modal.getInstance(document.getElementById('editEventModal')).hide();
+            loadDashboard();
+        }
+
+        async function sendEventRequest(endpoint, method, data, successMsg) {
+            try {
+                const res = await fetch(API_URL + endpoint, {
+                    method: method,
+                    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) { alert(successMsg); }
+                else { const err = await res.json(); alert("Error: " + err.detail); }
+            } catch (e) { alert("Connection Failed"); }
+        }
+
+        let html5QrcodeScanner;
+        function startScanner() {
+            if (html5QrcodeScanner) return;
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+            html5QrcodeScanner.render(onScanSuccess);
+        }
+        async function onScanSuccess(decodedText) {
+            html5QrcodeScanner.pause();
+            const res = await fetch(`${API_URL}/organizer/scan`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ qr_code: decodedText })
+            });
+            const data = await res.json();
+            document.getElementById("scanResult").innerHTML = res.ok ?
+                `<div class="alert alert-success"><h5>✅ Valid</h5><p>${data.student}</p></div>` :
+                `<div class="alert alert-danger"><h5>❌ Failed</h5><p>${data.detail}</p></div>`;
+            setTimeout(() => html5QrcodeScanner.resume(), 2000);
+        }
+        loadDashboard();
+    </script>
+</body>
+
+</html>

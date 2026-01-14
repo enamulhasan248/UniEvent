@@ -1,0 +1,18 @@
+<div class="scanner-container">
+    <mat-card class="scanner-card">
+        <mat-card-header>
+            <mat-card-title>Scan Ticket QR</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="scanner-wrapper" *ngIf="isScanning">
+                <zxing-scanner (scanSuccess)="onCodeResult($event)"></zxing-scanner>
+            </div>
+
+            <div class="result-wrapper" *ngIf="!isScanning">
+                <h3>Scan Result</h3>
+                <p class="code">{{scanResult}}</p>
+                <button mat-raised-button color="primary" (click)="resetScanner()">Scan Another</button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

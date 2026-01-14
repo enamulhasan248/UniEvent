@@ -1,0 +1,48 @@
+<mat-toolbar color="primary" class="navbar">
+  <span class="logo" routerLink="/">Campus Events</span>
+
+  <span class="spacer"></span>
+
+  <div class="nav-links">
+    <button mat-button routerLink="/events">Events</button>
+    <button mat-button routerLink="/clubs">Clubs</button>
+    <button mat-button routerLink="/venues">Venues</button>
+  </div>
+
+  <span class="spacer"></span>
+
+  <div class="auth-actions">
+    <ng-container *ngIf="authService.isAuthenticated(); else guestTemplate">
+      <button mat-icon-button [matMenuTriggerFor]="profileMenu">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+      <mat-menu #profileMenu="matMenu">
+        <button mat-menu-item routerLink="/profile" *ngIf="authService.getRole() === 'student'">
+          <mat-icon>person</mat-icon>
+          <span>My Profile</span>
+        </button>
+        <button mat-menu-item routerLink="/admin" *ngIf="authService.getRole() === 'admin'">
+          <mat-icon>dashboard</mat-icon>
+          <span>Admin Dashboard</span>
+        </button>
+        <button mat-menu-item routerLink="/organizer" *ngIf="authService.getRole() === 'organizer'">
+          <mat-icon>dashboard</mat-icon>
+          <span>Organizer Dashboard</span>
+        </button>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
+    </ng-container>
+
+    <ng-template #guestTemplate>
+      <button mat-button routerLink="/login">Login</button>
+      <button mat-raised-button color="accent" routerLink="/signup">Sign Up</button>
+    </ng-template>
+  </div>
+</mat-toolbar>
+
+<div class="main-content">
+  <router-outlet></router-outlet>
+</div>

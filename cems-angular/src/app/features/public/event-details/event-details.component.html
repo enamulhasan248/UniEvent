@@ -1,0 +1,35 @@
+<div class="container" *ngIf="event; else loadingTpl">
+    <div class="banner" [style.backgroundImage]="'url(' + (event.banner_url || 'assets/placeholder.jpg') + ')'"></div>
+
+    <div class="content">
+        <h1>{{event.title}}</h1>
+
+        <div class="meta">
+            <div class="meta-item">
+                <mat-icon>calendar_today</mat-icon>
+                <span>{{event.start_time | date:'medium'}}</span>
+            </div>
+            <div class="meta-item">
+                <mat-icon>location_on</mat-icon>
+                <span>Venue ID: {{event.venue_id}}</span>
+            </div>
+            <div class="meta-item">
+                <mat-icon>group</mat-icon>
+                <span>Max Attendees: {{event.max_attendees}}</span>
+            </div>
+        </div>
+
+        <div class="description">
+            <h3>About this Event</h3>
+            <p>{{event.description}}</p>
+        </div>
+
+        <div class="actions">
+            <button mat-raised-button color="primary" size="large" (click)="register()">Register Now</button>
+        </div>
+    </div>
+</div>
+
+<ng-template #loadingTpl>
+    <div class="loading">Loading event details...</div>
+</ng-template>

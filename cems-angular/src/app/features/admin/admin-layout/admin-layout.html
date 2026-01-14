@@ -1,0 +1,34 @@
+<mat-sidenav-container class="sidenav-container">
+    <mat-sidenav mode="side" opened class="sidenav">
+        <mat-toolbar>Admin Panel</mat-toolbar>
+        <mat-nav-list>
+            <a mat-list-item routerLink="/admin/dashboard" routerLinkActive="active">
+                <mat-icon matListItemIcon>dashboard</mat-icon>
+                <span matListItemTitle>Dashboard</span>
+            </a>
+            <a mat-list-item routerLink="/admin/users" routerLinkActive="active">
+                <mat-icon matListItemIcon>people</mat-icon>
+                <span matListItemTitle>Users</span>
+            </a>
+            <a mat-list-item routerLink="/admin/resources" routerLinkActive="active">
+                <mat-icon matListItemIcon>category</mat-icon>
+                <span matListItemTitle>Resources</span>
+            </a>
+            <mat-divider></mat-divider>
+            <a mat-list-item (click)="logout()">
+                <mat-icon matListItemIcon>logout</mat-icon>
+                <span matListItemTitle>Logout</span>
+            </a>
+        </mat-nav-list>
+    </mat-sidenav>
+    <mat-sidenav-content>
+        <mat-toolbar color="primary">
+            <span>Admin Dashboard</span>
+            <span class="spacer"></span>
+            <button mat-button routerLink="/">Back to Site</button>
+        </mat-toolbar>
+        <div class="content">
+            <router-outlet></router-outlet>
+        </div>
+    </mat-sidenav-content>
+</mat-sidenav-container>

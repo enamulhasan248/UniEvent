@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Users - CEMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            height: 100vh;
+            background: #343a40;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .sidebar a {
+            color: #cfd2d6;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #495057;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="d-flex">
+        <div class="sidebar p-3" style="width: 250px;">
+            <h4 class="mb-4 text-center">Admin Panel</h4>
+            <a href="admin_dashboard.html">Dashboard</a>
+            <a href="admin_users.html" class="active">Manage Users</a>
+            <a href="admin_resources.html">Manage Clubs & Venues</a>
+            <a href="index.html" class="mt-5 text-warning">← Back to Website</a>
+        </div>
+
+        <div class="p-4 w-100">
+            <h2>User Management</h2>
+            <p class="text-muted">View users and assign Organizer roles.</p>
+
+            <table class="table table-striped table-hover mt-3 shadow-sm bg-white">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Current Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="userTable">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        const token = localStorage.getItem("token");
+
+        // Load Users
+        async function loadUsers() {
+            const res = await fetch(`${API_URL}/admin/users`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const users = await res.json();
+
+            const tbody = document.getElementById("userTable");
+            tbody.innerHTML = users.map(user => `
+            <tr>
+                <td>${user.first_name} ${user.last_name}</td>
+                <td>${user.email}</td>
+                <td><span class="badge ${user.role === 'admin' ? 'bg-danger' : (user.role === 'organizer' ? 'bg-success' : 'bg-secondary')}">${user.role}</span></td>
+                <td>
+                    ${user.role === 'student' ?
+                    `<button onclick="promoteUser('${user.id}')" class="btn btn-sm btn-outline-success">Make Organizer</button>` :
+                    `<span class="text-muted">-</span>`
+                }
+                </td>
+            </tr>
+        `).join('');
+        }
+
+        async function promoteUser(userId) {
+            if (!confirm("Are you sure you want to promote this user to Organizer?")) return;
+
+            const res = await fetch(`${API_URL}/admin/users/${userId}/role`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ role: "organizer" })
+            });
+
+            if (res.ok) {
+                alert("User promoted successfully!");
+                loadUsers(); // Refresh table
+            } else {
+                alert("Error updating role");
+            }
+        }
+
+        loadUsers();
+    </script>
+</body>
+
+</html>

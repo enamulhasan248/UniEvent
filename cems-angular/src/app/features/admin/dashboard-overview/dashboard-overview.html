@@ -1,0 +1,33 @@
+<div class="dashboard-grid">
+    <mat-card class="stat-card users">
+        <mat-card-header>
+            <mat-icon mat-card-avatar>people</mat-icon>
+            <mat-card-title>{{stats.total_users || 0}}</mat-card-title>
+            <mat-card-subtitle>Total Users</mat-card-subtitle>
+        </mat-card-header>
+    </mat-card>
+
+    <mat-card class="stat-card events">
+        <mat-card-header>
+            <mat-icon mat-card-avatar>event</mat-icon>
+            <mat-card-title>{{stats.total_events || 0}}</mat-card-title>
+            <mat-card-subtitle>Total Events</mat-card-subtitle>
+        </mat-card-header>
+    </mat-card>
+
+    <mat-card class="stat-card clubs">
+        <mat-card-header>
+            <mat-icon mat-card-avatar>groups</mat-icon>
+            <mat-card-title>{{stats.total_clubs || 0}}</mat-card-title>
+            <mat-card-subtitle>Active Clubs</mat-card-subtitle>
+        </mat-card-header>
+    </mat-card>
+
+    <mat-card class="stat-card venues">
+        <mat-card-header>
+            <mat-icon mat-card-avatar>location_on</mat-icon>
+            <mat-card-title>{{stats.total_venues || 0}}</mat-card-title>
+            <mat-card-subtitle>Venues</mat-card-subtitle>
+        </mat-card-header>
+    </mat-card>
+</div>

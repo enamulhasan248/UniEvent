@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>EWU Campus Events</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .hero {
+            background: #f8f9fa;
+            padding: 50px 0;
+            text-align: center;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: #004085 !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">EWU Events</a>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Browse Events</a></li>
+
+                    <li class="nav-item" id="authSection">
+                        <a class="btn btn-outline-primary btn-sm" href="login.html">Log In</a>
+                        <a class="btn btn-primary btn-sm ms-2" href="signup.html">Sign Up</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="eventCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner" id="carouselContent">
+            <div class="carousel-item active">
+                <div class="d-flex align-items-center justify-content-center bg-dark text-white" style="height: 300px;">
+                    <h3>Loading Top Events...</h3>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#eventCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#eventCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+
+    <div class="container mt-5">
+        <h2>All Events</h2>
+        <div class="row" id="eventsList">
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+
+        // 1. Check if user is logged in
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("role");
+
+        if (token) {
+            let dashboardLink = "profile.html"; // Default for student
+            let dashboardText = "My Profile";
+
+            if (role === 'admin') {
+                dashboardLink = "admin_dashboard.html";
+                dashboardText = "Admin Dashboard";
+            } else if (role === 'organizer') {
+                dashboardLink = "organizer_dashboard.html";
+                dashboardText = "Organizer Dashboard";
+            }
+
+            document.getElementById("authSection").innerHTML = `
+            <a class="btn btn-outline-primary btn-sm me-2" href="${dashboardLink}">${dashboardText}</a>
+            <button onclick="logout()" class="btn btn-danger btn-sm">Logout</button>
+        `;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.reload();
+        }
+
+        // 2. Fetch Featured Events for Carousel
+        async function loadFeatured() {
+            const response = await fetch(`${API_URL}/events/featured`);
+            const events = await response.json();
+
+            const carouselContainer = document.getElementById("carouselContent");
+
+            if (events.length > 0) {
+                carouselContainer.innerHTML = events.map((evt, index) => `
+                <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                    ${evt.banner_url ?
+                        `<img src="${evt.banner_url}" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="${evt.title}">` :
+                        `<div class="d-flex align-items-center justify-content-center bg-secondary text-white" style="height: 400px;">
+                            <h1>${evt.title}</h1>
+                         </div>`
+                    }
+                    <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 p-3 rounded">
+                        <h5>${evt.title}</h5>
+                        <p>${new Date(evt.start_time).toDateString()} - ${evt.description ? evt.description.substring(0, 50) + '...' : ''}</p>
+                    </div>
+                </div>
+            `).join('');
+            } else {
+                carouselContainer.innerHTML = `<div class="text-center p-5">No featured events yet.</div>`;
+            }
+        }
+
+        loadFeatured();
+
+        // 3. Fetch All Events
+        async function loadAllEvents() {
+            const response = await fetch(`${API_URL}/events`);
+            const events = await response.json();
+
+            const eventsList = document.getElementById("eventsList");
+
+            if (events.length > 0) {
+                eventsList.innerHTML = events.map(evt => `
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            ${evt.banner_url ?
+                        `<img src="${evt.banner_url}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${evt.title}">` :
+                        `<div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">No Image</div>`
+                    }
+                            <div class="card-body">
+                                <h5 class="card-title">${evt.title}</h5>
+                                <p class="card-text text-muted small">
+                                    <i class="bi bi-calendar"></i> ${new Date(evt.start_time).toDateString()} <br>
+                                    <i class="bi bi-clock"></i> ${new Date(evt.start_time).toLocaleTimeString()}
+                                </p>
+                                <p class="card-text">${evt.description ? evt.description.substring(0, 100) + '...' : ''}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="event_details.html?id=${evt.id}" class="btn btn-outline-primary btn-sm">View Details</a>
+                                    ${token ? `<button onclick="registerForEvent('${evt.id}')" class="btn btn-primary btn-sm">Register</button>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                eventsList.innerHTML = `<div class="col-12 text-center"><p>No events found.</p></div>`;
+            }
+        }
+
+        loadAllEvents();
+
+        async function registerForEvent(eventId) {
+            if (!confirm("Are you sure you want to register?")) return;
+
+            try {
+                const response = await fetch(`${API_URL}/events/${eventId}/register`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert("Registration Successful! Ticket ID: " + data.ticket_id);
+                } else {
+                    alert("Error: " + data.detail);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("An error occurred.");
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

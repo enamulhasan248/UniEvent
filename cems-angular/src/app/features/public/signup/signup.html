@@ -1,0 +1,64 @@
+<div class="signup-container">
+    <mat-card class="signup-card">
+        <mat-card-header>
+            <mat-card-title>Create Account</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <mat-stepper [linear]="true" #stepper>
+                <mat-step [stepControl]="signupForm" label="Details">
+                    <form [formGroup]="signupForm">
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>First Name</mat-label>
+                            <input matInput formControlName="first_name">
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Last Name</mat-label>
+                            <input matInput formControlName="last_name">
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Email (EWU Only)</mat-label>
+                            <input matInput formControlName="email" placeholder="id@std.ewubd.edu">
+                            <mat-error *ngIf="signupForm.get('email')?.hasError('pattern')">Must be an EWU
+                                email</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Password</mat-label>
+                            <input matInput type="password" formControlName="password">
+                        </mat-form-field>
+
+                        <div class="actions">
+                            <button mat-raised-button color="primary" (click)="requestOtp(); stepper.next()"
+                                [disabled]="signupForm.invalid">
+                                Next
+                            </button>
+                        </div>
+                    </form>
+                </mat-step>
+
+                <mat-step [stepControl]="otpForm" label="Verify OTP">
+                    <form [formGroup]="otpForm">
+                        <p>Please enter the 4-digit OTP sent to your email.</p>
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>OTP</mat-label>
+                            <input matInput formControlName="otp" maxlength="4">
+                        </mat-form-field>
+
+                        <div class="actions">
+                            <button mat-button matStepperPrevious>Back</button>
+                            <button mat-raised-button color="primary" (click)="verifyAndSignup()"
+                                [disabled]="otpForm.invalid">
+                                Verify & Signup
+                            </button>
+                        </div>
+                    </form>
+                </mat-step>
+            </mat-stepper>
+        </mat-card-content>
+        <mat-card-actions align="end">
+            <a routerLink="/login" mat-button color="accent">Already have an account? Login</a>
+        </mat-card-actions>
+    </mat-card>
+</div>

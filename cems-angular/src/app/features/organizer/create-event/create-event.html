@@ -1,0 +1,83 @@
+<div class="create-event-container">
+    <h2>Create New Event</h2>
+
+    <mat-stepper [linear]="true" #stepper>
+        <mat-step [stepControl]="basicForm" label="Basic Info">
+            <form [formGroup]="basicForm">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Event Title</mat-label>
+                    <input matInput formControlName="title">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Description</mat-label>
+                    <textarea matInput formControlName="description" rows="4"></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Organizing Club</mat-label>
+                    <mat-select formControlName="club_id">
+                        <mat-option *ngFor="let club of clubs" [value]="club.id">
+                            {{club.name}}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <div class="actions">
+                    <button mat-raised-button color="primary" matStepperNext>Next</button>
+                </div>
+            </form>
+        </mat-step>
+
+        <mat-step [stepControl]="logisticsForm" label="Logistics">
+            <form [formGroup]="logisticsForm">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Venue</mat-label>
+                    <mat-select formControlName="venue_id">
+                        <mat-option *ngFor="let venue of venues" [value]="venue.id">
+                            {{venue.name}} (Cap: {{venue.capacity}})
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <div class="row">
+                    <mat-form-field appearance="outline" class="half-width">
+                        <mat-label>Start Time</mat-label>
+                        <input matInput type="datetime-local" formControlName="start_time">
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="half-width">
+                        <mat-label>End Time</mat-label>
+                        <input matInput type="datetime-local" formControlName="end_time">
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Max Attendees</mat-label>
+                    <input matInput type="number" formControlName="max_attendees">
+                </mat-form-field>
+
+                <div class="actions">
+                    <button mat-button matStepperPrevious>Back</button>
+                    <button mat-raised-button color="primary" matStepperNext>Next</button>
+                </div>
+            </form>
+        </mat-step>
+
+        <mat-step label="Review">
+            <div class="review-section">
+                <h3>Review Details</h3>
+                <p><strong>Title:</strong> {{basicForm.value.title}}</p>
+                <p><strong>Club:</strong> {{basicForm.value.club_id}}</p>
+                <p><strong>Venue:</strong> {{logisticsForm.value.venue_id}}</p>
+                <p><strong>Start:</strong> {{logisticsForm.value.start_time}}</p>
+                <p><strong>Capacity:</strong> {{logisticsForm.value.max_attendees}}</p>
+            </div>
+
+            <div class="actions">
+                <button mat-button matStepperPrevious>Back</button>
+                <button mat-raised-button color="accent" (click)="submit()">Publish Event</button>
+            </div>
+        </mat-step>
+    </mat-stepper>
+</div>

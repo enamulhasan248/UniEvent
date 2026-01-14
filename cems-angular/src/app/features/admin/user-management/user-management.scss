@@ -1,0 +1,40 @@
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+}
+
+.role-select {
+    width: 120px;
+    font-size: 12px;
+
+    ::ng-deep .mat-mdc-form-field-wrapper {
+        padding-bottom: 0;
+    }
+}
+
+.role-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: bold;
+
+    &.admin {
+        background: #ffcdd2;
+        color: #c62828;
+    }
+
+    &.organizer {
+        background: #bbdefb;
+        color: #1565c0;
+    }
+
+    &.student {
+        background: #c8e6c9;
+        color: #2e7d32;
+    }
+}

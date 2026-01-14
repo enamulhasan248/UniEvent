@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile - EWU Events</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">EWU Events</a>
+            <button onclick="logout()" class="btn btn-light btn-sm">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="bg-secondary rounded-circle mx-auto mb-3" style="width: 80px; height: 80px;"></div>
+                        <h4 id="userName">Loading...</h4>
+                        <p class="text-muted" id="userEmail">...</p>
+                        <span class="badge bg-info text-dark" id="userRole">Student</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <h4 class="mb-3">My Registered Events</h4>
+                <div id="eventsList">
+                    <p class="text-muted">Loading your events...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="qrModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <h5>Event Ticket</h5>
+                <p class="small text-muted">Show this QR code at the venue entrance</p>
+                <img id="qrImage" src="" class="img-fluid mx-auto" style="max-width: 200px;">
+                <p class="mt-3 font-monospace" id="ticketIdDisplay"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        const token = localStorage.getItem("token");
+
+        // 1. Security Check
+        if (!token) {
+            window.location.href = "login.html";
+        }
+
+        // 2. Fetch Profile Data
+        async function loadProfile() {
+            const res = await fetch(`${API_URL}/users/me`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (res.status === 401) logout();
+
+            const user = await res.json();
+
+            // Fill User Info
+            document.getElementById("userName").innerText = `${user.first_name} ${user.last_name}`;
+            document.getElementById("userEmail").innerText = user.email;
+            document.getElementById("userRole").innerText = user.role.toUpperCase();
+
+            // Fill Events List
+            const listContainer = document.getElementById("eventsList");
+            if (user.events.length === 0) {
+                listContainer.innerHTML = `<div class="alert alert-light">You haven't registered for any events yet. <a href="index.html">Browse Events</a></div>`;
+            } else {
+                listContainer.innerHTML = user.events.map(evt => `
+                <div class="card mb-3 border-0 shadow-sm">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">${evt.title}</h5>
+                            <p class="mb-0 text-muted small">${new Date(evt.date).toDateString()}</p>
+                        </div>
+                        <button onclick="showQR('${evt.ticket_id}')" class="btn btn-outline-dark btn-sm">
+                            View Ticket
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            }
+        }
+
+        // 3. Generate QR Code
+        async function showQR(ticketId) {
+            // Fetch Base64 Image from Backend
+            const res = await fetch(`${API_URL}/registrations/qr/${ticketId}`);
+            const data = await res.json();
+
+            // Show in Modal
+            document.getElementById("qrImage").src = "data:image/png;base64," + data.qr_image_base64;
+            document.getElementById("ticketIdDisplay").innerText = ticketId;
+
+            new bootstrap.Modal(document.getElementById('qrModal')).show();
+        }
+
+        function logout() {
+            localStorage.removeItem("token");
+            window.location.href = "login.html";
+        }
+
+        loadProfile();
+    </script>
+
+</body>
+
+</html>

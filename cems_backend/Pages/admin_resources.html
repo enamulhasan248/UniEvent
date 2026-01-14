@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Clubs & Venues - CEMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            height: 100vh;
+            background: #343a40;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .sidebar a {
+            color: #cfd2d6;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #495057;
+            color: white;
+        }
+
+        .club-logo-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="d-flex">
+        <div class="sidebar p-3" style="width: 250px;">
+            <h4 class="mb-4 text-center">Admin Panel</h4>
+            <a href="admin_dashboard.html">Dashboard</a>
+            <a href="admin_users.html">Manage Users</a>
+            <a href="admin_resources.html" class="active">Manage Clubs & Venues</a>
+            <a href="index.html" class="mt-5 text-warning">← Back to Website</a>
+        </div>
+
+        <div class="p-4 w-100">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">Create New Club</div>
+                        <div class="card-body">
+                            <form id="clubForm">
+                                <div class="mb-2">
+                                    <label>Club Name</label>
+                                    <input type="text" id="clubName" class="form-control" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label>Logo URL (Image Link)</label>
+                                    <input type="url" id="clubLogo" class="form-control"
+                                        placeholder="https://example.com/logo.png">
+                                </div>
+                                <div class="mb-2">
+                                    <label>Description</label>
+                                    <textarea id="clubDesc" class="form-control" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Add Club</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white">Add New Venue</div>
+                        <div class="card-body">
+                            <form id="venueForm">
+                                <div class="mb-2">
+                                    <label>Venue Name</label>
+                                    <input type="text" id="venueName" class="form-control"
+                                        placeholder="e.g., Auditorium" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label>Location</label>
+                                    <input type="text" id="venueLoc" class="form-control"
+                                        placeholder="e.g., Block B, 2nd Floor" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label>Capacity</label>
+                                    <input type="number" id="venueCap" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Add Venue</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <h4>Existing Clubs</h4>
+                    <ul id="clubList" class="list-group"></ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>Existing Venues</h4>
+                    <ul id="venueList" class="list-group"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editClubModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Club</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editClubId">
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Assign Organizer</label>
+                        <select id="editClubOrganizer" class="form-select">
+                            <option value="">Loading Organizers...</option>
+                        </select>
+                        <small class="text-muted">Select a user with 'Organizer' role to manage this club.</small>
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Name</label>
+                        <input type="text" id="editClubName" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label>Logo URL</label>
+                        <input type="url" id="editClubLogo" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label>Description</label>
+                        <textarea id="editClubDesc" class="form-control"></textarea>
+                    </div>
+                    <button onclick="submitEditClub()" class="btn btn-primary w-100 mt-3">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editVenueModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Venue</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editVenueId">
+                    <div class="mb-2">
+                        <label>Name</label>
+                        <input type="text" id="editVenueName" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label>Location</label>
+                        <input type="text" id="editVenueLoc" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label>Capacity</label>
+                        <input type="number" id="editVenueCap" class="form-control">
+                    </div>
+                    <button onclick="submitEditVenue()" class="btn btn-success w-100">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        const token = localStorage.getItem("token");
+
+        let globalClubs = [];
+        let globalVenues = [];
+        let globalOrganizers = [];
+
+        // --- 1. LOAD DATA ---
+        async function loadData() {
+            try {
+                // Load Clubs
+                const cRes = await fetch(API_URL + "/clubs");
+                globalClubs = await cRes.json();
+                document.getElementById("clubList").innerHTML = globalClubs.map(c =>
+                    `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <img src="${c.logo_url || 'https://via.placeholder.com/40'}" class="club-logo-thumb" alt="logo">
+                        <div>
+                            <strong>${c.name}</strong><br>
+                            <small class="text-muted">Org ID: ${c.organizer_id ? c.organizer_id.substring(0, 8) + '...' : 'None'}</small>
+                        </div>
+                    </div>
+                    <button onclick="openEditClub('${c.id}')" class="btn btn-sm btn-outline-primary">Edit</button>
+                 </li>`
+                ).join('');
+
+                // Load Venues
+                const vRes = await fetch(API_URL + "/venues");
+                globalVenues = await vRes.json();
+                document.getElementById("venueList").innerHTML = globalVenues.map(v =>
+                    `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div><strong>${v.name}</strong> <span class="text-muted small">(${v.location})</span></div>
+                    <button onclick="openEditVenue('${v.id}')" class="btn btn-sm btn-outline-success">Edit</button>
+                 </li>`
+                ).join('');
+
+                // Load Organizers (For the dropdown)
+                const uRes = await fetch(API_URL + "/admin/users", {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const users = await uRes.json();
+                globalOrganizers = users.filter(u => u.role === 'organizer');
+
+            } catch (err) { console.error(err); }
+        }
+
+        // --- 2. CREATE LOGIC ---
+        document.getElementById("clubForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById("clubName").value,
+                description: document.getElementById("clubDesc").value,
+                logo_url: document.getElementById("clubLogo").value
+            };
+            await sendRequest("/clubs", "POST", data, "Club Created!");
+        });
+
+        document.getElementById("venueForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById("venueName").value,
+                location: document.getElementById("venueLoc").value,
+                capacity: parseInt(document.getElementById("venueCap").value)
+            };
+            await sendRequest("/venues", "POST", data, "Venue Added!");
+        });
+
+        // --- 3. EDIT LOGIC (CLUBS) ---
+        function openEditClub(id) {
+            const club = globalClubs.find(c => c.id === id);
+            if (!club) return;
+
+            document.getElementById("editClubId").value = club.id;
+            document.getElementById("editClubName").value = club.name;
+            document.getElementById("editClubDesc").value = club.description;
+            document.getElementById("editClubLogo").value = club.logo_url || "";
+
+            // Populate Organizer Dropdown
+            const orgSelect = document.getElementById("editClubOrganizer");
+            orgSelect.innerHTML = '<option value="">-- No Organizer Assigned --</option>';
+
+            globalOrganizers.forEach(org => {
+                const isSelected = (club.organizer_id === org.id) ? 'selected' : '';
+                orgSelect.innerHTML += `<option value="${org.id}" ${isSelected}>${org.first_name} ${org.last_name} (${org.email})</option>`;
+            });
+
+            new bootstrap.Modal(document.getElementById('editClubModal')).show();
+        }
+
+        async function submitEditClub() {
+            const id = document.getElementById("editClubId").value;
+            const orgId = document.getElementById("editClubOrganizer").value;
+
+            const data = {
+                name: document.getElementById("editClubName").value,
+                description: document.getElementById("editClubDesc").value,
+                logo_url: document.getElementById("editClubLogo").value,
+                organizer_id: orgId === "" ? null : orgId // Send selected ID
+            };
+
+            await sendRequest(`/clubs/${id}`, "PUT", data, "Club Updated!");
+            bootstrap.Modal.getInstance(document.getElementById('editClubModal')).hide();
+        }
+
+        // --- 4. EDIT LOGIC (VENUES) ---
+        function openEditVenue(id) {
+            const venue = globalVenues.find(v => v.id === id);
+            if (!venue) return;
+
+            document.getElementById("editVenueId").value = venue.id;
+            document.getElementById("editVenueName").value = venue.name;
+            document.getElementById("editVenueLoc").value = venue.location;
+            document.getElementById("editVenueCap").value = venue.capacity;
+
+            new bootstrap.Modal(document.getElementById('editVenueModal')).show();
+        }
+
+        async function submitEditVenue() {
+            const id = document.getElementById("editVenueId").value;
+            const data = {
+                name: document.getElementById("editVenueName").value,
+                location: document.getElementById("editVenueLoc").value,
+                capacity: parseInt(document.getElementById("editVenueCap").value)
+            };
+            await sendRequest(`/venues/${id}`, "PUT", data, "Venue Updated!");
+            bootstrap.Modal.getInstance(document.getElementById('editVenueModal')).hide();
+        }
+
+        // --- 5. HELPER FUNCTION ---
+        async function sendRequest(endpoint, method, data, successMsg) {
+            try {
+                const res = await fetch(API_URL + endpoint, {
+                    method: method,
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    alert(successMsg);
+                    loadData();
+                    if (method === "POST") {
+                        document.getElementById("clubForm").reset();
+                        document.getElementById("venueForm").reset();
+                    }
+                } else {
+                    const errorData = await res.json();
+                    alert("Error: " + (errorData.detail || "Something went wrong"));
+                }
+            } catch (err) {
+                alert("Failed to connect to server.");
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

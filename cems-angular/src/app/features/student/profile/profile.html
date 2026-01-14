@@ -1,0 +1,49 @@
+<div class="profile-container" *ngIf="user">
+    <div class="profile-header">
+        <h1>My Profile</h1>
+        <mat-card class="user-card">
+            <mat-card-header>
+                <div mat-card-avatar class="avatar-placeholder">
+                    <mat-icon>person</mat-icon>
+                </div>
+                <mat-card-title>{{user.first_name}} {{user.last_name}}</mat-card-title>
+                <mat-card-subtitle>{{user.email}}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <p><strong>Role:</strong> {{user.role | titlecase}}</p>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <div class="events-section">
+        <h2>My Registered Events</h2>
+        <div class="events-list">
+            <mat-card *ngFor="let evt of user.events" class="event-item">
+                <mat-card-header>
+                    <mat-card-title>{{evt.title}}</mat-card-title>
+                    <mat-card-subtitle>{{evt.date | date:'medium'}}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-actions align="end">
+                    <button mat-raised-button color="primary" (click)="openQr(evt.ticket_id)">
+                        <mat-icon>qr_code</mat-icon> View Ticket
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+
+            <div *ngIf="user.events.length === 0" class="no-events">
+                <p>You haven't registered for any events yet.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #qrDialog>
+    <h2 mat-dialog-title>Your Ticket QR</h2>
+    <mat-dialog-content class="text-center">
+        <qrcode [qrdata]="'CEMS-TICKET:' + selectedTicket" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
+        <p class="mt-2">Show this at the venue entrance</p>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+        <button mat-button mat-dialog-close>Close</button>
+    </mat-dialog-actions>
+</ng-template>

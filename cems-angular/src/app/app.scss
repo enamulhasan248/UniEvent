@@ -1,0 +1,36 @@
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.nav-links {
+    display: flex;
+    gap: 10px;
+
+    @media (max-width: 600px) {
+        display: none; // Hide on mobile for now, or implement hamburger
+    }
+}
+
+.auth-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.main-content {
+    min-height: calc(100vh - 64px);
+    background: #fafafa;
+}

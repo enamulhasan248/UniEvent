@@ -1,0 +1,34 @@
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    mat-icon {
+        font-size: 40px;
+        height: 40px;
+        width: 40px;
+        margin-right: 15px;
+    }
+
+    mat-card-title {
+        font-size: 2rem;
+    }
+}
+
+.users mat-icon {
+    color: #3f51b5;
+}
+
+.events mat-icon {
+    color: #4caf50;
+}
+
+.clubs mat-icon {
+    color: #ff9800;
+}
+
+.venues mat-icon {
+    color: #00bcd4;
+}

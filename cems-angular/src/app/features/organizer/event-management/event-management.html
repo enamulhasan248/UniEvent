@@ -1,0 +1,66 @@
+<div class="dashboard-container">
+    <div class="stats-grid">
+        <mat-card class="stat-card">
+            <mat-card-header>
+                <mat-icon mat-card-avatar>event</mat-icon>
+                <mat-card-title>{{stats.total_events || 0}}</mat-card-title>
+                <mat-card-subtitle>My Events</mat-card-subtitle>
+            </mat-card-header>
+        </mat-card>
+        <mat-card class="stat-card">
+            <mat-card-header>
+                <mat-icon mat-card-avatar>confirmation_number</mat-icon>
+                <mat-card-title>{{stats.total_registrations || 0}}</mat-card-title>
+                <mat-card-subtitle>Total Registrations</mat-card-subtitle>
+            </mat-card-header>
+        </mat-card>
+    </div>
+
+    <div class="events-table mat-elevation-z8">
+        <div class="table-header">
+            <h2>My Events</h2>
+            <button mat-raised-button color="primary" routerLink="/organizer/create-event">
+                <mat-icon>add</mat-icon> Create Event
+            </button>
+        </div>
+
+        <table mat-table [dataSource]="dataSource">
+            <!-- Title Column -->
+            <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef> Title </th>
+                <td mat-cell *matCellDef="let row"> {{row.title}} </td>
+            </ng-container>
+
+            <!-- Date Column -->
+            <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef> Date </th>
+                <td mat-cell *matCellDef="let row"> {{row.start_time | date:'short'}} </td>
+            </ng-container>
+
+            <!-- Capacity Column -->
+            <ng-container matColumnDef="capacity">
+                <th mat-header-cell *matHeaderCellDef> Capacity </th>
+                <td mat-cell *matCellDef="let row"> {{row.max_attendees}} </td>
+            </ng-container>
+
+            <!-- Registrations Column -->
+            <ng-container matColumnDef="registrations">
+                <th mat-header-cell *matHeaderCellDef> Registered </th>
+                <td mat-cell *matCellDef="let row"> {{row.registration_count || 0}} </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell *matCellDef="let row">
+                    <button mat-icon-button color="primary">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </div>
+</div>

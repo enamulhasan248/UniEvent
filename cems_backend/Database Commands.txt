@@ -1,0 +1,139 @@
+-- Enable UUID extension (for generating unique secure IDs)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 1. ENUM TYPES (Defining fixed categories)
+CREATE TYPE user_role AS ENUM ('admin', 'organizer', 'student');
+CREATE TYPE event_status AS ENUM ('upcoming', 'ongoing', 'completed', 'cancelled');
+CREATE TYPE ticket_status AS ENUM ('registered', 'checked_in', 'cancelled');
+
+-- 2. USERS TABLE
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL, -- Store hashed passwords, NEVER plain text
+    role user_role DEFAULT 'student',
+    student_id VARCHAR(20), -- Only relevant for students
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. VENUES TABLE (Places where events happen)
+CREATE TABLE venues (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL UNIQUE, -- e.g., "Main Auditorium"
+    location VARCHAR(255), -- e.g., "Building C, 3rd Floor"
+    capacity INT NOT NULL CHECK (capacity > 0), -- Capacity must be positive
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. CLUBS TABLE
+CREATE TABLE clubs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) UNIQUE NOT NULL, -- e.g., "Robotics Club"
+    description TEXT,
+    logo_url VARCHAR(255),
+    -- Link specific organizer to this club
+    organizer_id UUID UNIQUE REFERENCES users(id) ON DELETE SET NULL, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. EVENTS TABLE
+CREATE TABLE events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    banner_url VARCHAR(255),
+    start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    location_details VARCHAR(255), -- Specific details inside the venue
+    max_attendees INT NOT NULL CHECK (max_attendees > 0),
+    status event_status DEFAULT 'upcoming',
+    
+    -- Relationships
+    club_id UUID REFERENCES clubs(id) ON DELETE CASCADE, -- If club is deleted, events go too
+    venue_id UUID REFERENCES venues(id) ON DELETE SET NULL,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- VALIDATION: Start time must be before end time
+    CONSTRAINT check_dates CHECK (start_time < end_time)
+);
+
+-- 6. REGISTRATIONS (TICKETS) TABLE
+CREATE TABLE registrations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    ticket_id UUID DEFAULT uuid_generate_v4(), -- The actual code used for QR Scanning
+    
+    -- Relationships
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    event_id UUID REFERENCES events(id) ON DELETE CASCADE,
+    
+    status ticket_status DEFAULT 'registered',
+    registered_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- CONSTRAINT: A student can only register ONCE for a specific event
+    UNIQUE(user_id, event_id) 
+);
+
+
+
+
+
+
+-- Function to check if a venue is available
+-- Returns TRUE if there is a conflict, FALSE if it is free.
+CREATE OR REPLACE FUNCTION check_venue_conflict(
+    check_venue_id UUID, 
+    new_start_time TIMESTAMP, 
+    new_end_time TIMESTAMP
+) 
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 
+        FROM events 
+        WHERE venue_id = check_venue_id 
+        AND status != 'cancelled'
+        AND (
+            (new_start_time, new_end_time) OVERLAPS (start_time, end_time)
+        )
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+-- Step 1: Create the Function that checks capacity
+CREATE OR REPLACE FUNCTION check_event_capacity()
+RETURNS TRIGGER AS $$
+DECLARE
+    current_count INTEGER;
+    max_capacity INTEGER;
+BEGIN
+    -- Get the maximum capacity for the event being registered
+    SELECT max_attendees INTO max_capacity
+    FROM events
+    WHERE id = NEW.event_id;
+
+    -- Count how many people are already registered
+    SELECT COUNT(*) INTO current_count
+    FROM registrations
+    WHERE event_id = NEW.event_id;
+
+    -- LOGIC: If current count is equal to or greater than max, STOP.
+    -- We use >= because the current INSERT hasn't happened yet.
+    IF current_count >= max_capacity THEN
+        RAISE EXCEPTION 'Event is House Full (Capacity Reached)';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Step 2: Attach the Trigger to the Registrations Table
+CREATE TRIGGER prevent_overbooking
+BEFORE INSERT ON registrations
+FOR EACH ROW
+EXECUTE FUNCTION check_event_capacity();

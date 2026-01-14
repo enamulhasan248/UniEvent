@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Event Details - EWU Events</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">EWU Events</a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item" id="authSection">
+                        <a class="btn btn-outline-primary btn-sm" href="login.html">Log In</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div id="eventDetails" class="row">
+            <div class="col-12 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("role");
+
+        // Auth Check
+        if (token) {
+            let dashboardLink = "profile.html"; // Default for student
+            let dashboardText = "My Profile";
+
+            if (role === 'admin') {
+                dashboardLink = "admin_dashboard.html";
+                dashboardText = "Admin Dashboard";
+            } else if (role === 'organizer') {
+                dashboardLink = "organizer_dashboard.html";
+                dashboardText = "Organizer Dashboard";
+            }
+
+            document.getElementById("authSection").innerHTML = `
+                <a class="btn btn-outline-primary btn-sm me-2" href="${dashboardLink}">${dashboardText}</a>
+                <button onclick="logout()" class="btn btn-danger btn-sm">Logout</button>
+            `;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+
+        // Get Event ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('id');
+
+        async function loadEventDetails() {
+            if (!eventId) {
+                document.getElementById("eventDetails").innerHTML = `<div class="alert alert-danger">No Event ID provided.</div>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/events/${eventId}`);
+                if (!response.ok) throw new Error("Event not found");
+
+                const evt = await response.json();
+
+                document.getElementById("eventDetails").innerHTML = `
+                    <div class="col-md-8 offset-md-2">
+                        <div class="card shadow">
+                            ${evt.banner_url ?
+                        `<img src="${evt.banner_url}" class="card-img-top" style="height: 400px; object-fit: cover;" alt="${evt.title}">` :
+                        `<div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 300px;"><h1>${evt.title}</h1></div>`
+                    }
+                            <div class="card-body">
+                                <h2 class="card-title mb-4">${evt.title}</h2>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <p><strong><i class="bi bi-calendar-event"></i> Start:</strong> ${new Date(evt.start_time).toLocaleString()}</p>
+                                        <p><strong><i class="bi bi-calendar-x"></i> End:</strong> ${new Date(evt.end_time).toLocaleString()}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong><i class="bi bi-people"></i> Capacity:</strong> ${evt.max_attendees}</p>
+                                    </div>
+                                </div>
+                                
+                                <h5>Description</h5>
+                                <p class="card-text">${evt.description || "No description available."}</p>
+                                
+                                <hr>
+                                
+                                <div class="d-grid gap-2">
+                                    ${token ?
+                        `<button onclick="registerForEvent('${evt.id}')" class="btn btn-primary btn-lg">Register Now</button>` :
+                        `<a href="login.html" class="btn btn-warning btn-lg">Login to Register</a>`
+                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById("eventDetails").innerHTML = `<div class="alert alert-danger">Error loading event details: ${error.message}</div>`;
+            }
+        }
+
+        async function registerForEvent(id) {
+            if (!confirm("Confirm registration for this event?")) return;
+
+            try {
+                const response = await fetch(`${API_URL}/events/${id}/register`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert("Successfully Registered! Ticket ID: " + data.ticket_id);
+                } else {
+                    alert("Registration Failed: " + data.detail);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("An error occurred during registration.");
+            }
+        }
+
+        loadEventDetails();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
